@@ -42,7 +42,7 @@
 #define kObjcOnewayEncoding "V"
 
 enum SDMSTObjcLexerTokenType {
-	ObjcCharEncoding = 0x1,
+	ObjcCharEncoding = 1,
 	ObjcIntEncoding,
 	ObjcShortEncoding,
 	ObjcLongEncoding,
@@ -78,8 +78,8 @@ enum SDMSTObjcLexerTokenType {
 
 #define kObjcStructDefinitionToken "="
 
-#define SDMObjcLexerConvertIndexToToken(a) (enum SDMSTObjcLexerTokenType)(a+0x1)
-#define SDMObjcLexerConvertTokenToIndex(a) (uint32_t)(a-0x1)
+#define SDMObjcLexerConvertIndexToToken(a) (enum SDMSTObjcLexerTokenType)(a+1)
+#define SDMObjcLexerConvertTokenToIndex(a) (uint32_t)(a-1)
 
 struct SDMSTObjcLexerToken {
 	char *type;

@@ -13,7 +13,7 @@
 #include <string.h>
 
 struct SDMSTObjcClass* SDMSTObjc1CreateClassFromProtocol(struct SDMSTObjc *objcData, struct SDMSTObjc1Protocol *prot, uint64_t offset) {
-	struct SDMSTObjcClass *newClass = calloc(0x1, sizeof(struct SDMSTObjcClass));
+	struct SDMSTObjcClass *newClass = calloc(1, sizeof(struct SDMSTObjcClass));
 	if (prot) {
 		newClass->className = Ptr(PtrAdd(offset, prot->name));
 	}
@@ -21,7 +21,7 @@ struct SDMSTObjcClass* SDMSTObjc1CreateClassFromProtocol(struct SDMSTObjc *objcD
 }
 
 struct SDMSTObjcClass* SDMSTObjc1CreateClassFromCategory(struct SDMSTObjc *objcData, struct SDMSTObjc1Category *cat, uint64_t offset) {
-	struct SDMSTObjcClass *newClass = calloc(0x1, sizeof(struct SDMSTObjcClass));
+	struct SDMSTObjcClass *newClass = calloc(1, sizeof(struct SDMSTObjcClass));
 	if (cat) {
 		newClass->className = Ptr(PtrAdd(offset, cat->name));
 	}
@@ -29,9 +29,9 @@ struct SDMSTObjcClass* SDMSTObjc1CreateClassFromCategory(struct SDMSTObjc *objcD
 }
 
 struct SDMSTObjcClass* SDMSTObjc1CreateClassFromClass(struct SDMSTObjc *objcData, struct SDMSTObjc1Class *cls, uint64_t offset) {
-	struct SDMSTObjcClass *newClass = calloc(0x1, sizeof(struct SDMSTObjcClass));
+	struct SDMSTObjcClass *newClass = calloc(1, sizeof(struct SDMSTObjcClass));
 	if (cls) {
-		if (cls->superClass != 0x0) {
+		if (cls->superClass != 0) {
 			bool isValidClass = SDMSTObjc1ValidClassCheck(((uint32_t)(cls->info)));
 			if (cls->superClass != cls->isa && isValidClass) {
 				struct SDMSTObjc1Class *objc1class = (struct SDMSTObjc1Class *)PtrAdd(offset, cls->superClass);
@@ -39,7 +39,7 @@ struct SDMSTObjcClass* SDMSTObjc1CreateClassFromClass(struct SDMSTObjc *objcData
 			} else if (isValidClass) {
 				newClass->superCls = (struct SDMSTObjcClass *)PtrAdd(offset, cls->superClass);
 			} else {
-				newClass->superCls = 0x0;
+				newClass->superCls = 0;
 			}
 			newClass->className = Ptr(PtrAdd(offset, cls->name));
 			
@@ -48,7 +48,7 @@ struct SDMSTObjcClass* SDMSTObjc1CreateClassFromClass(struct SDMSTObjc *objcData
 				newClass->ivarCount = ivarInfo->count;
 				newClass->ivar = calloc(newClass->ivarCount, sizeof(struct SDMSTObjcIVar));
 				struct SDMSTObjc1ClassIVar *ivarOffset = (struct SDMSTObjc1ClassIVar *)PtrAdd(ivarInfo, sizeof(struct SDMSTObjc1ClassIVarInfo));
-				for (uint32_t i = 0x0; i < newClass->ivarCount; i++) {
+				for (uint32_t i = 0; i < newClass->ivarCount; i++) {
 					newClass->ivar[i].name = Ptr(PtrAdd(offset, ivarOffset[i].name));
 					newClass->ivar[i].type = Ptr(PtrAdd(offset, ivarOffset[i].type));
 					newClass->ivar[i].offset = (uintptr_t)(ivarOffset[i].offset);
@@ -61,7 +61,7 @@ struct SDMSTObjcClass* SDMSTObjc1CreateClassFromClass(struct SDMSTObjc *objcData
 				newClass->methodCount = methodInfo->count;
 				newClass->method = calloc(newClass->methodCount, sizeof(struct SDMSTObjcMethod));
 				struct SDMSTObjc1ClassMethod *methodOffset = (struct SDMSTObjc1ClassMethod *)PtrAdd(methodInfo, sizeof(struct SDMSTObjc1ClassMethodInfo));
-				for (uint32_t i = 0x0; i < newClass->methodCount; i++) {
+				for (uint32_t i = 0; i < newClass->methodCount; i++) {
 					newClass->method[i].name = Ptr(PtrAdd(offset, methodOffset[i].name));
 					newClass->method[i].type = Ptr(PtrAdd(offset, methodOffset[i].type));
 					newClass->method[i].offset = (uintptr_t)(methodOffset[i].imp);
@@ -81,7 +81,7 @@ void SDMSTObjc1CreateClassFromSymbol(struct SDMSTObjc *objcData, struct SDMSTObj
 	if (symtab) {
 		uint32_t counter = symtab->catCount + symtab->classCount;
 		struct SDMSTObjc1SymtabDefinition *symbol = (struct SDMSTObjc1SymtabDefinition *)PtrAdd(symtab, sizeof(struct SDMSTObjc1Symtab));
-		for (uint32_t i = 0x0; i < counter; i++) {
+		for (uint32_t i = 0; i < counter; i++) {
 			uint64_t memOffset;
 			if (((PtrAdd(memOffset, symbol[i].defintion) >= (PtrAdd(PtrHighPointer(memOffset), objcData->classRange.offset))) && (PtrAdd(memOffset, symbol[i].defintion) <= (PtrAdd(PtrHighPointer(memOffset), ((uint64_t)(objcData->classRange.offset) + (uint64_t)objcData->classRange.length)))))) {
 				struct SDMSTObjc1Class *objc1class = (struct SDMSTObjc1Class *)PtrAdd(memOffset, symbol[i].defintion);
@@ -89,7 +89,7 @@ void SDMSTObjc1CreateClassFromSymbol(struct SDMSTObjc *objcData, struct SDMSTObj
 				memcpy(&(objcData->cls[objcData->clsCount]), newClass, sizeof(struct SDMSTObjcClass));
 				free(newClass);
 				objcData->clsCount++;
-				objcData->cls = realloc(objcData->cls, sizeof(struct SDMSTObjcClass)*(objcData->clsCount+0x1));
+				objcData->cls = realloc(objcData->cls, sizeof(struct SDMSTObjcClass)*(objcData->clsCount+1));
 			}
 			if ((PtrAdd(memOffset, symbol[i].defintion) >= PtrAdd(PtrHighPointer(memOffset), objcData->catRange.offset)) && (PtrAdd(memOffset, symbol[i].defintion) <= (PtrAdd(PtrHighPointer(memOffset), (objcData->catRange.offset + objcData->catRange.length))))) {
 				struct SDMSTObjc1Category *objc1cat = (struct SDMSTObjc1Category *)PtrAdd(memOffset,symbol[i].defintion);
@@ -97,7 +97,7 @@ void SDMSTObjc1CreateClassFromSymbol(struct SDMSTObjc *objcData, struct SDMSTObj
 				memcpy(&(objcData->cls[objcData->clsCount]), newClass, sizeof(struct SDMSTObjcClass));
 				free(newClass);
 				objcData->clsCount++;
-				objcData->cls = realloc(objcData->cls, sizeof(struct SDMSTObjcClass)*(objcData->clsCount+0x1));
+				objcData->cls = realloc(objcData->cls, sizeof(struct SDMSTObjcClass)*(objcData->clsCount+1));
 			}
 			symbol = (struct SDMSTObjc1SymtabDefinition *)PtrAdd(symbol, sizeof(struct SDMSTObjc1SymtabDefinition));
 		}
@@ -105,7 +105,7 @@ void SDMSTObjc1CreateClassFromSymbol(struct SDMSTObjc *objcData, struct SDMSTObj
 }
 
 struct SDMSTObjcClass* SDMSTObjc2ClassCreateFromClass(struct SDMSTObjc2Class *cls, struct SDMSTObjc2Class *parentClass, CoreRange dataRange, uint64_t offset) {
-	struct SDMSTObjcClass *newClass = calloc(0x1, sizeof(struct SDMSTObjcClass));
+	struct SDMSTObjcClass *newClass = calloc(1, sizeof(struct SDMSTObjcClass));
 	if (cls != parentClass) {
 		if ((PtrAdd(offset, cls->isa >= Ptr(dataRange.offset)) && (PtrAdd(offset, cls->isa) < (PtrAdd(offset, (dataRange.offset + dataRange.length)))))) {
 			newClass->superCls = SDMSTObjc2ClassCreateFromClass((cls->isa),cls, dataRange, offset);
@@ -117,7 +117,7 @@ struct SDMSTObjcClass* SDMSTObjc2ClassCreateFromClass(struct SDMSTObjc2Class *cl
 				newClass->ivarCount = ivarInfo->count;
 				newClass->ivar = calloc(newClass->ivarCount, sizeof(struct SDMSTObjcIVar));
 				struct SDMSTObjc2ClassIVar *ivarOffset = (struct SDMSTObjc2ClassIVar *)PtrAdd(ivarInfo, sizeof(struct SDMSTObjc2ClassIVarInfo));
-				for (uint32_t i = 0x0; i < newClass->ivarCount; i++) {
+				for (uint32_t i = 0; i < newClass->ivarCount; i++) {
 					newClass->ivar[i].name = Ptr(PtrAdd(offset, ivarOffset[i].name));
 					newClass->ivar[i].type = Ptr(PtrAdd(offset, ivarOffset[i].type));
 					newClass->ivar[i].offset = (uintptr_t)(ivarOffset[i].offset);
@@ -129,7 +129,7 @@ struct SDMSTObjcClass* SDMSTObjc2ClassCreateFromClass(struct SDMSTObjc2Class *cl
 				newClass->methodCount = methodInfo->count;
 				newClass->method = calloc(newClass->methodCount, sizeof(struct SDMSTObjcMethod));
 				struct SDMSTObjc2ClassMethod *methodOffset = (struct SDMSTObjc2ClassMethod *)PtrAdd(methodInfo, sizeof(struct SDMSTObjc2ClassMethodInfo));
-				for (uint32_t i = 0x0; i < newClass->methodCount; i++) {
+				for (uint32_t i = 0; i < newClass->methodCount; i++) {
 					newClass->method[i].name = Ptr(PtrAdd(offset, methodOffset[i].name));
 					newClass->method[i].type = Ptr(PtrAdd(offset, methodOffset[i].type));
 					newClass->method[i].offset = (uintptr_t)(methodOffset[i].imp);
@@ -141,7 +141,7 @@ struct SDMSTObjcClass* SDMSTObjc2ClassCreateFromClass(struct SDMSTObjc2Class *cl
 				newClass->protocolCount = (uint32_t)(protocolInfo->count);
 				newClass->protocol = calloc(newClass->protocolCount, sizeof(struct SDMSTObjcProtocol));
 				struct SDMSTObjc2ClassProtocol *protocolOffset = (struct SDMSTObjc2ClassProtocol *)PtrAdd(protocolInfo, sizeof(struct SDMSTObjc2ClassProtcolInfo));
-				for (uint32_t i = 0x0; i < newClass->protocolCount; i++) {
+				for (uint32_t i = 0; i < newClass->protocolCount; i++) {
 					newClass->protocol[i].offset = (uintptr_t)(protocolOffset[i].offset);
 				}
 			}

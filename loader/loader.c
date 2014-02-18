@@ -147,42 +147,42 @@ void SDMGenerateSymbols(struct loader_binary * binary) {
 bool SDMMapObjcClasses32(struct loader_binary * binary) {
 	bool result = (binary->map->segment_map->objc ? true : false);
 	if (result) {
-		struct SDMSTObjc *objc_data = calloc(0x1, sizeof(struct SDMSTObjc));
+		struct SDMSTObjc *objc_data = calloc(1, sizeof(struct SDMSTObjc));
 		struct loader_segment_32 *objc_segment = ((struct loader_segment_32 *)(binary->map->segment_map->objc));
-		uint32_t moduleCount = 0x0;
+		uint32_t module_count = 0;
 		struct loader_section_32 *section = (struct loader_section_32 *)PtrAdd(objc_segment, sizeof(struct loader_segment_32));
-		uint32_t sectionCount = objc_segment->info.nsects;
+		uint32_t section_count = objc_segment->info.nsects;
 		struct SDMSTObjcModuleRaw *module = NULL;
-		for (uint32_t i = 0x0; i < sectionCount; i++) {
+		for (uint32_t index = 0; index < section_count; index++) {
 			uint64_t mem_offset = _dyld_get_image_vmaddr_slide(binary->image_index);
 			char *sectionName = Ptr(section->name.sectname);
-			if (strncmp(sectionName, kObjc1ModuleInfo, sizeof(char)*0x10) == 0x0) {
+			if (strncmp(sectionName, kObjc1ModuleInfo, sizeof(char[16])) == 0) {
 				module = (struct SDMSTObjcModuleRaw *)PtrAdd(binary->header, section->info.offset);
-				moduleCount = (section->position.size)/sizeof(struct SDMSTObjcModuleRaw);
+				module_count = (section->position.size)/sizeof(struct SDMSTObjcModuleRaw);
 			}
-			if (strncmp(sectionName, kObjc1Class, sizeof(char)*0x10) == 0x0) {
+			if (strncmp(sectionName, kObjc1Class, sizeof(char[16])) == 0) {
 				objc_data->classRange = CoreRangeCreate((uint32_t)((uint64_t)(section->position.addr)+(uint64_t)mem_offset), section->position.size);
 			}
-			if (strncmp(sectionName, kObjc1Category, sizeof(char)*0x10) == 0x0) {
+			if (strncmp(sectionName, kObjc1Category, sizeof(char[16])) == 0) {
 				objc_data->catRange = CoreRangeCreate((uint32_t)((uint64_t)(section->position.addr)+(uint64_t)mem_offset), section->position.size);
 			}
-			if (strncmp(sectionName, kObjc1Protocol, sizeof(char)*0x10) == 0x0) {
+			if (strncmp(sectionName, kObjc1Protocol, sizeof(char[16])) == 0) {
 				objc_data->protRange = CoreRangeCreate((uint32_t)((uint64_t)(section->position.addr)+(uint64_t)mem_offset), section->position.size);
 			}
-			if (strncmp(sectionName, kObjc1ClsMeth, sizeof(char)*0x10) == 0x0) {
+			if (strncmp(sectionName, kObjc1ClsMeth, sizeof(char[16])) == 0) {
 				objc_data->clsMRange = CoreRangeCreate((uint32_t)((uint64_t)(section->position.addr)+(uint64_t)mem_offset), section->position.size);
 			}
-			if (strncmp(sectionName, kObjc1InstMeth, sizeof(char)*0x10) == 0x0) {
+			if (strncmp(sectionName, kObjc1InstMeth, sizeof(char[16])) == 0) {
 				objc_data->instMRange = CoreRangeCreate((uint32_t)((uint64_t)(section->position.addr)+(uint64_t)mem_offset), section->position.size);
 			}
 			section = (struct loader_section_32 *)PtrAdd(section, sizeof(struct loader_section_32));
 		}
-		if (moduleCount) {
-			objc_data->cls = calloc(0x1, sizeof(struct SDMSTObjcClass));
-			objc_data->clsCount = 0x0;
+		if (module_count) {
+			objc_data->cls = calloc(1, sizeof(struct SDMSTObjcClass));
+			objc_data->clsCount = 0;
 			uint64_t mem_offset = 0;
-			for (uint32_t i = 0x0; i < moduleCount; i++) {
-				struct SDMSTObjc1Symtab *symtab = (struct SDMSTObjc1Symtab *)PtrAdd(mem_offset, module[i].symtab);
+			for (uint32_t index = 0; index < module_count; index++) {
+				struct SDMSTObjc1Symtab *symtab = (struct SDMSTObjc1Symtab *)PtrAdd(mem_offset, module[index].symtab);
 				SDMSTObjc1CreateClassFromSymbol(objc_data, symtab);
 			}
 		}
@@ -194,15 +194,15 @@ bool SDMMapObjcClasses32(struct loader_binary * binary) {
 bool SDMMapObjcClasses64(struct loader_binary * binary) {
 	bool result = (binary->map->segment_map->objc ? true : false);
 	if (result) {
-		struct SDMSTObjc *objc_data = calloc(0x1, sizeof(struct SDMSTObjc));
+		struct SDMSTObjc *objc_data = calloc(1, sizeof(struct SDMSTObjc));
 		struct loader_segment_64 *objc_segment = ((struct loader_segment_64 *)(binary->map->segment_map->objc));
 		uint64_t mem_offset = _dyld_get_image_vmaddr_slide(binary->image_index) & k32BitMask;
 		CoreRange data_range = CoreRangeCreate((uintptr_t)((uint64_t)(objc_segment->data.position.addr)+((uint64_t)mem_offset)),objc_segment->data.position.size);
 		struct loader_section_64 *section = (struct loader_section_64 *)PtrAdd(objc_segment, sizeof(struct loader_section_64));
 		uint32_t section_count = objc_segment->info.nsects;
-		for (uint32_t i = 0x0; i < section_count; i++) {
+		for (uint32_t index = 0; index < section_count; index++) {
 			char *section_name = Ptr(section->name.sectname);
-			if (strncmp(section_name, kObjc2ClassList, sizeof(char)*0x10) == 0x0) {
+			if (strncmp(section_name, kObjc2ClassList, sizeof(char[16])) == 0) {
 				objc_data->clsCount = (uint32_t)((section->position.size)/sizeof(uint64_t));
 				break;
 			}
@@ -210,15 +210,15 @@ bool SDMMapObjcClasses64(struct loader_binary * binary) {
 		}
 		if (objc_data->clsCount) {
 			objc_data->cls = calloc(objc_data->clsCount, sizeof(struct SDMSTObjcClass));
-			for (uint32_t i = 0x0; i < objc_data->clsCount; i++) {
+			for (uint32_t index = 0; index < objc_data->clsCount; index++) {
 				uint64_t *classes = (uint64_t*)PtrAdd(section->position.addr, mem_offset);
-				struct SDMSTObjc2Class *cls = (struct SDMSTObjc2Class *)PtrAdd(mem_offset, classes[i]);
-				struct SDMSTObjcClass *objclass = SDMSTObjc2ClassCreateFromClass(cls, 0x0, data_range, mem_offset);
-				memcpy(&(objc_data->cls[i]), objclass, sizeof(struct SDMSTObjcClass));
+				struct SDMSTObjc2Class *cls = (struct SDMSTObjc2Class *)PtrAdd(mem_offset, classes[index]);
+				struct SDMSTObjcClass *objclass = SDMSTObjc2ClassCreateFromClass(cls, 0, data_range, mem_offset);
+				memcpy(&(objc_data->cls[index]), objclass, sizeof(struct SDMSTObjcClass));
 				free(objclass);
 			}
 		}
-		binary->objc = calloc(0x1, sizeof(struct SDMSTObjc));
+		binary->objc = calloc(1, sizeof(struct SDMSTObjc));
 		memcpy(binary->objc, objc_segment, sizeof(SDMSTObjc));
 		free(objc_segment);
 	}
@@ -237,10 +237,8 @@ bool SDMBinaryIs64Bit(struct loader_generic_header *header) {
 
 struct loader_binary * SDMLoadBinaryWithPath(char *path) {
 	struct loader_binary *binary = calloc(1, sizeof(struct loader_binary));
-	const struct mach_header *image_header = NULL;
 	bool inMemory = SDMIsBinaryLoaded(path, binary);
 	if (inMemory) {
-		binary->header = PtrCast(image_header, struct loader_generic_header *);
 		binary->map = SDMCreateBinaryMap(binary->header);
 		SDMGenerateSymbols(binary);
 		bool loadedObjc = false;

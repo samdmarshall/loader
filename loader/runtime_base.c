@@ -61,7 +61,7 @@ IMP observerResolveInstanceMethod(id self, SEL _cmd, ...) {
 
 char* SDMGenerateGetterName(char *keyName) {
 	unsigned long length = sizeof(char)*strlen(keyName);
-	char *hasGet = calloc(0x1, length);
+	char *hasGet = calloc(1, length);
 	memcpy(hasGet, keyName, length);
 	return hasGet;
 }
@@ -71,7 +71,7 @@ char* SDMGenerateObserver(char *selName) {
 	unsigned long oLength = strlen(observe);
 	unsigned long selLength = strlen(selName);
 	unsigned long totalLength = sizeof(char)*(selLength+oLength+1);
-	char *observerSelector = calloc(0x1, totalLength);
+	char *observerSelector = calloc(1, totalLength);
 	memcpy(observerSelector, observe, oLength);
 	memcpy(&(observerSelector[oLength]), selName, selLength);
 	return observerSelector;
@@ -79,23 +79,23 @@ char* SDMGenerateObserver(char *selName) {
 
 char* SDMGenerateSetterName(char *keyName) {
 	unsigned long length = sizeof(char)*strlen(keyName);
-	unsigned long totalLength = length+0x4;
-	char *hasSet = calloc(0x1, totalLength);
-	memcpy(hasSet, "set", 0x3);
-	memcpy(&(hasSet[0x3]), keyName, length);
-	hasSet[0x3] = toupper(hasSet[0x3]);
-	memcpy(&(hasSet[totalLength-0x1]), ":", 0x1);
+	unsigned long totalLength = length+4;
+	char *hasSet = calloc(1, totalLength);
+	memcpy(hasSet, "set", 3);
+	memcpy(&(hasSet[3]), keyName, length);
+	hasSet[3] = toupper(hasSet[3]);
+	memcpy(&(hasSet[totalLength-1]), ":", 1);
 	return hasSet;
 }
 
 char* SDMGenerateMethodSignature(Method method) {
 	unsigned int count = method_getNumberOfArguments(method);
-	char *signature = calloc(0x1, sizeof(char)+0x2);
-	method_getReturnType(method, signature, 0x2);
+	char *signature = calloc(1, sizeof(char[2]));
+	method_getReturnType(method, signature, 2);
 	
-	for (unsigned int i = 0x0; i < count; i++) {
-		unsigned int length = sizeof(char)*0x100;
-		char *buffer = calloc(0x1, length);
+	for (unsigned int i = 0; i < count; i++) {
+		unsigned int length = sizeof(char[256]);
+		char *buffer = calloc(1, length);
 		method_getArgumentType(method, i, buffer, length);
 		unsigned long sigLength = sizeof(char)*(strlen(signature)+strlen(buffer));
 		signature = realloc(signature, sigLength);
@@ -117,14 +117,14 @@ IMP SDMFireGetterSetterNotificationsAndReturnIMP(id self, SEL _cmd) {
 	if (observers) {
 		uint32_t observableCount = observers->count;
 		uint32_t index;
-		for (index = 0x0; index < observableCount; index++) {
+		for (index = 0; index < observableCount; index++) {
 			char *observableGetter = observers->array[index].getName;
 			char *observableSetter = observers->array[index].setName;
-			if (strncmp(originalSelector, observableGetter, strlen(originalSelector)) == 0x0) {
+			if (strncmp(originalSelector, observableGetter, strlen(originalSelector)) == 0) {
 				observedSelector = isGetter = YES;
 				break;
 			}
-			if (strncmp(originalSelector, observableSetter, strlen(originalSelector)) == 0x0) {
+			if (strncmp(originalSelector, observableSetter, strlen(originalSelector)) == 0) {
 				observedSelector = isSetter = YES;
 				break;
 			}
@@ -140,7 +140,7 @@ IMP SDMFireGetterSetterNotificationsAndReturnIMP(id self, SEL _cmd) {
 		}
 	}
 	if (!observedSelector) {
-		originalMethods = calloc(0x1, sizeof(struct MethodCalls));
+		originalMethods = calloc(1, sizeof(struct MethodCalls));
 		resolveSelector = SDMGenerateObserver(originalSelector);		
 		originalMethods->originalCall = class_getInstanceMethod((Class)object_getClass(self), sel_registerName(resolveSelector));
 		originalMethods->switchCall = class_getInstanceMethod((Class)object_getClass(self), _cmd);
@@ -157,8 +157,8 @@ BOOL SDMRegisterCallbacksForKeyInInstance(BlockPointer getObserve, BlockPointer 
 	BOOL registerGetStatus = NO;
 	BOOL registerSetStatus = NO;
 	if ((getObserve && setObserve) && instance) {
-		__block char *getName = 0x0;
-		__block char *setName = 0x0;
+		__block char *getName = 0;
+		__block char *setName = 0;
 		
 		Class class = objc_getClass(object_getClassName(instance));
 		BOOL isProperty = SDMCanRegisterForPropertyInClass(keyName, class);
@@ -196,9 +196,9 @@ BOOL SDMRegisterCallbacksForKeyInInstance(BlockPointer getObserve, BlockPointer 
 			__block struct ObserverArray *existingObservers = PtrCast(associatedObject, struct ObserverArray*);
 			__block uint32_t index;
 			dispatch_sync(existingObservers->operationsQueue, ^{
-				for (index = 0x0; index < existingObservers->count; index++) {
+				for (index = 0; index < existingObservers->count; index++) {
 					char *key = existingObservers->array[index].keyName;
-					if (strncmp(keyName, key, strlen(keyName)) == 0x0) {
+					if (strncmp(keyName, key, strlen(keyName)) == 0) {
 						existingObserverForKey = YES;
 						// SDM: we have an existing observer registered.
 						break;
@@ -206,20 +206,20 @@ BOOL SDMRegisterCallbacksForKeyInInstance(BlockPointer getObserve, BlockPointer 
 				}
 				if (!existingObserverForKey) {
 					if (index == existingObservers->count) {
-						originalMethods = calloc(0x1, sizeof(struct MethodNames));
-						char *keyOperationsQueueName = calloc(0x1, 0x100);
-						snprintf(keyOperationsQueueName,  0x100, "%s-%s-%p",class_getName(class),keyName,instance);
+						originalMethods = calloc(1, sizeof(struct MethodNames));
+						char *keyOperationsQueueName = calloc(1, sizeof(char[256]));
+						snprintf(keyOperationsQueueName, 256, "%s-%s-%p",class_getName(class),keyName,instance);
 						originalMethods->keyQueue = dispatch_queue_create(keyOperationsQueueName, DISPATCH_QUEUE_SERIAL);
-						originalMethods->keyName = calloc(0x1, strlen(keyName));
+						originalMethods->keyName = calloc(1, strlen(keyName));
 						memcpy(originalMethods->keyName, keyName, strlen(keyName));
-						originalMethods->getName = calloc(0x1, strlen(getName));
+						originalMethods->getName = calloc(1, strlen(getName));
 						memcpy(originalMethods->getName, getName, strlen(getName));
-						originalMethods->setName = calloc(0x1, strlen(setName));
+						originalMethods->setName = calloc(1, strlen(setName));
 						memcpy(originalMethods->setName, setName, strlen(setName));
 						
-						existingObservers->array = realloc(existingObservers->array, sizeof(struct MethodNames)*(existingObservers->count+0x1));
+						existingObservers->array = realloc(existingObservers->array, sizeof(struct MethodNames)*(existingObservers->count+1));
 						existingObservers->count++;
-						memcpy(&(existingObservers->array[existingObservers->count-0x1]), originalMethods, sizeof(struct MethodNames));
+						memcpy(&(existingObservers->array[existingObservers->count-1]), originalMethods, sizeof(struct MethodNames));
 					}
 				}
 			});
@@ -234,19 +234,19 @@ BOOL SDMRegisterCallbacksForKeyInInstance(BlockPointer getObserve, BlockPointer 
 				return registerStatus;
 			}
 		} else {
-			originalMethods = calloc(0x1, sizeof(struct MethodNames));
-			char *keyOperationsQueueName = calloc(0x1, 0x100);
-			snprintf(keyOperationsQueueName,  0x100, "%s-%s-%p",class_getName(class),keyName,instance);
+			originalMethods = calloc(1, sizeof(struct MethodNames));
+			char *keyOperationsQueueName = calloc(1, sizeof(char[256]));
+			snprintf(keyOperationsQueueName,  256, "%s-%s-%p",class_getName(class),keyName,instance);
 			originalMethods->keyQueue = dispatch_queue_create(keyOperationsQueueName, DISPATCH_QUEUE_SERIAL);
-			originalMethods->keyName = calloc(0x1, strlen(keyName));
+			originalMethods->keyName = calloc(1, strlen(keyName));
 			memcpy(originalMethods->keyName, keyName, strlen(keyName));
-			originalMethods->getName = calloc(0x1, strlen(getName));
+			originalMethods->getName = calloc(1, strlen(getName));
 			memcpy(originalMethods->getName, getName, strlen(getName));
-			originalMethods->setName = calloc(0x1, strlen(setName));
+			originalMethods->setName = calloc(1, strlen(setName));
 			memcpy(originalMethods->setName, setName, strlen(setName));
 			
-			struct ObserverArray *observers = calloc(0x1, sizeof(struct ObserverArray));
-			char *operationsQueueName = calloc(0x1, 0x100);
+			struct ObserverArray *observers = calloc(1, sizeof(struct ObserverArray));
+			char *operationsQueueName = calloc(1, 0x100);
 			snprintf(operationsQueueName,  0x100, "%s-observer-operations-queue",class_getName(class));
 			observers->operationsQueue = dispatch_queue_create(operationsQueueName, DISPATCH_QUEUE_SERIAL);
 			observers->array = originalMethods;
@@ -266,14 +266,14 @@ BOOL SDMRegisterCallbacksForKeyInInstance(BlockPointer getObserve, BlockPointer 
 				
 				IMP getSelector = SDMGetSet;
 				
-				struct MethodCalls *methods = calloc(0x1, sizeof(struct MethodCalls));
+				struct MethodCalls *methods = calloc(1, sizeof(struct MethodCalls));
 				methods->block = getObserve;
 				methods->switchCall = resolveGetter;
 				BOOL addObserverGetter = class_addMethod(class, observerGetSelector, getSelector, getMethodSignature);
 				if (addObserverGetter) {
 					Method getter = class_getInstanceMethod(class, observerGetSelector);
 					method_exchangeImplementations(resolveGetter, getter);
-					Method observerGetter = calloc(0x1, sizeof(MethodStruct));
+					Method observerGetter = calloc(1, sizeof(MethodStruct));
 					memcpy(observerGetter, getter, sizeof(MethodStruct));
 					methods->originalCall = observerGetter;
 					objc_setAssociatedObject(instance, originalMethods->getName, PtrCast(methods,id), OBJC_ASSOCIATION_ASSIGN);
@@ -302,14 +302,14 @@ BOOL SDMRegisterCallbacksForKeyInInstance(BlockPointer getObserve, BlockPointer 
 				
 				IMP setSelector = SDMGetSet;
 				
-				struct MethodCalls *methods = calloc(0x1, sizeof(struct MethodCalls));
+				struct MethodCalls *methods = calloc(1, sizeof(struct MethodCalls));
 				methods->block = setObserve;
 				methods->switchCall = resolveSetter;
 				BOOL addObserverSetter = class_addMethod(class, observerSetSelector, setSelector, setMethodSignature);
 				if (addObserverSetter) {
 					Method setter = class_getInstanceMethod(class, observerSetSelector);
 					method_exchangeImplementations(resolveSetter, setter);
-					Method observerSetter = calloc(0x1, sizeof(MethodStruct));
+					Method observerSetter = calloc(1, sizeof(MethodStruct));
 					memcpy(observerSetter, setter, sizeof(MethodStruct));
 					methods->originalCall = observerSetter;
 					objc_setAssociatedObject(instance, originalMethods->setName, PtrCast(methods,id), OBJC_ASSOCIATION_ASSIGN);
@@ -339,10 +339,10 @@ void SDMRemoveCallbackForKeyInInstance(char *keyName, id instance) {
 	if (associatedObject) {
 		__block struct ObserverArray *observers = PtrCast(associatedObject, struct ObserverArray*);
 		dispatch_sync(observers->operationsQueue, ^{
-			for (uint32_t i = 0x0; i < observers->count; i++) {
+			for (uint32_t i = 0; i < observers->count; i++) {
 				struct MethodNames *originalMethods = &(observers->array[i]);
 				char *observerKey = originalMethods->keyName;
-				if (strncmp(keyName, observerKey, strlen(keyName)) == 0x0) {
+				if (strncmp(keyName, observerKey, strlen(keyName)) == 0) {
 					
 					id originalGetterValue = objc_getAssociatedObject(instance, originalMethods->getName);
 					struct MethodCalls *observerGetterMethod = PtrCast(originalGetterValue,struct MethodCalls *);

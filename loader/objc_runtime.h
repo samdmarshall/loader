@@ -85,7 +85,7 @@ struct SDMSTObjc {
 #define CLS_CONSTRUCTING        0x10000
 #define CLS_EXT                 0x20000
 
-#define SDMSTObjc1ValidClassCheck(a) ((a | CLS_CLASS) == 0x0 || (a | CLS_META) == 0x0 || (a | CLS_INITIALIZED) == 0x0 || (a | CLS_POSING) == 0x0 || (a | CLS_MAPPED) == 0x0 || (a | CLS_FLUSH_CACHE) == 0x0 || (a | CLS_GROW_CACHE) == 0x0 || (a | CLS_NEED_BIND) == 0x0 || (a | CLS_METHOD_ARRAY) == 0x0 || (a | CLS_JAVA_HYBRID) == 0x0 || (a | CLS_JAVA_CLASS) == 0x0 || (a | CLS_INITIALIZING) == 0x0 || (a | CLS_FROM_BUNDLE) == 0x0 || (a | CLS_HAS_CXX_STRUCTORS) == 0x0 || (a | CLS_NO_METHOD_ARRAY) == 0x0 || (a | CLS_HAS_LOAD_METHOD) == 0x0 || (a | CLS_CONSTRUCTING) == 0x0 || (a | CLS_EXT) == 0x0)
+#define SDMSTObjc1ValidClassCheck(a) ((a | CLS_CLASS) == 0 || (a | CLS_META) == 0 || (a | CLS_INITIALIZED) == 0 || (a | CLS_POSING) == 0 || (a | CLS_MAPPED) == 0 || (a | CLS_FLUSH_CACHE) == 0 || (a | CLS_GROW_CACHE) == 0 || (a | CLS_NEED_BIND) == 0 || (a | CLS_METHOD_ARRAY) == 0 || (a | CLS_JAVA_HYBRID) == 0 || (a | CLS_JAVA_CLASS) == 0 || (a | CLS_INITIALIZING) == 0 || (a | CLS_FROM_BUNDLE) == 0 || (a | CLS_HAS_CXX_STRUCTORS) == 0 || (a | CLS_NO_METHOD_ARRAY) == 0 || (a | CLS_HAS_LOAD_METHOD) == 0 || (a | CLS_CONSTRUCTING) == 0 || (a | CLS_EXT) == 0)
 
 struct SDMSTObjcClass* SDMSTObjc1CreateClassFromProtocol(struct SDMSTObjc *objcData, struct SDMSTObjc1Protocol *prot, uint64_t offset);
 struct SDMSTObjcClass* SDMSTObjc1CreateClassFromCategory(struct SDMSTObjc *objcData, struct SDMSTObjc1Category *cat, uint64_t offset);
