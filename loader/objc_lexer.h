@@ -41,7 +41,7 @@
 #define kObjcByRefEncoding "R"
 #define kObjcOnewayEncoding "V"
 
-enum SDMSTObjcLexerTokenType {
+enum LoaderObjcLexerTokenType {
 	ObjcCharEncoding = 1,
 	ObjcIntEncoding,
 	ObjcShortEncoding,
@@ -78,29 +78,29 @@ enum SDMSTObjcLexerTokenType {
 
 #define kObjcStructDefinitionToken "="
 
-#define SDMObjcLexerConvertIndexToToken(a) (enum SDMSTObjcLexerTokenType)(a+1)
+#define SDMObjcLexerConvertIndexToToken(a) (enum LoaderObjcLexerTokenType)(a+1)
 #define SDMObjcLexerConvertTokenToIndex(a) (uint32_t)(a-1)
 
-struct SDMSTObjcLexerToken {
+struct loader_objc_lexer_token {
 	char *type;
 	char *typeName;
-	enum SDMSTObjcLexerTokenType typeClass;
-	struct SDMSTObjcLexerToken *children;
+	enum LoaderObjcLexerTokenType typeClass;
+	struct loader_objc_lexer_token *children;
 	uint32_t childrenCount;
 	uint32_t pointerCount;
 	uint32_t arrayCount;
-} ATR_PACK SDMSTObjcLexerToken;
+} ATR_PACK loader_objc_lexer_token;
 
-struct SDMSTObjcType {
-	struct SDMSTObjcLexerToken *token;
+struct loader_objc_lexer_type {
+	struct loader_objc_lexer_token *token;
 	uint32_t tokenCount;
-} ATR_PACK SDMSTObjcType;
+} ATR_PACK loader_objc_lexer_type;
 
-struct SDMSTObjcType* SDMSTObjcDecodeTypeWithLength(char *type, uint64_t decodeLength);
-struct SDMSTObjcType* SDMSTObjcDecodeType(char *type);
+struct loader_objc_lexer_type* SDMSTObjcDecodeTypeWithLength(char *type, uint64_t decodeLength);
+struct loader_objc_lexer_type* SDMSTObjcDecodeType(char *type);
 CoreRange SDMSTObjcGetTokenRangeFromOffset(char *type, uint64_t offset, char *token);
-char* SDMSTObjcPointersForToken(struct SDMSTObjcLexerToken *token);
-char* SDMSTObjcCreateMethodDescription(struct SDMSTObjcType *type, char *name);
-uint64_t SDMSTObjcDecodeSizeOfType(struct SDMSTObjcLexerToken *token);
+char* SDMSTObjcPointersForToken(struct loader_objc_lexer_token *token);
+char* SDMSTObjcCreateMethodDescription(struct loader_objc_lexer_type *type, char *name);
+uint64_t SDMSTObjcDecodeSizeOfType(struct loader_objc_lexer_token *token);
 
 #endif
